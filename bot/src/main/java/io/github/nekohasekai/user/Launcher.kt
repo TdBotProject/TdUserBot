@@ -15,6 +15,8 @@ import td.TdApi
 
 object Launcher : TdCli() {
 
+    override val loginType = LoginType.USER
+
     init {
 
         options databaseDirectory "data/main"

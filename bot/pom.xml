@@ -103,7 +103,7 @@
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                             <manifestEntries>
-                                <Main-Class>io.github.nekohasekai.group.Launcher</Main-Class>
+                                <Main-Class>io.github.nekohasekai.user.Launcher</Main-Class>
                             </manifestEntries>
                         </transformer>
                     </transformers>
