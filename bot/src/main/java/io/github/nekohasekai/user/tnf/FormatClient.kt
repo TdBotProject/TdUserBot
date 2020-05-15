@@ -1,5 +1,6 @@
 package io.github.nekohasekai.user.tnf
 
+import cn.hutool.log.level.Level
 import io.github.nekohasekai.nekolib.core.client.TdClient
 import io.github.nekohasekai.nekolib.core.raw.checkAuthenticationCode
 import io.github.nekohasekai.nekolib.core.raw.deleteAccountOrNull
@@ -16,10 +17,10 @@ class FormatClient(val dcId: String, val number: String) : TdClient() {
 
     init {
 
-        options.apply {
-            useTestDc(true)
-            databaseDirectory("data/test/$dcId$number")
-        }
+        options useTestDc true
+        options databaseDirectory "data/test/$dcId$number"
+        
+        connectionManager.log.logLevel = Level.OFF
 
     }
 

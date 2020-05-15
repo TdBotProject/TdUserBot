@@ -30,7 +30,7 @@ class FormatTestNumber : TdHandler() {
 
         } else if (function == "ftn_dc") {
 
-            val pool = Executors.newFixedThreadPool(9)
+            val pool = Executors.newFixedThreadPool(16)
 
             for (index in 0 until 10000) {
 
@@ -84,7 +84,7 @@ class FormatTestNumber : TdHandler() {
 
                         runBlocking {
 
-                            val client = FormatClient(param, str)
+                            val client = FormatClient("$dcId", str)
 
                             client.start()
 
@@ -92,7 +92,7 @@ class FormatTestNumber : TdHandler() {
 
                             launch(Dispatchers.IO) {
 
-                                FileUtil.del("data/test/$param$str")
+                                FileUtil.del("data/test/$dcId$str")
 
                             }
 
