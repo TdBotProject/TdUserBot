@@ -16,8 +16,6 @@ class UpgradeToSupergroup : TdHandler() {
 
         initFunction("upgrade")
 
-        super.onLoad()
-
     }
 
     override suspend fun onFunction(userId: Int, chatId: Long, message: TdApi.Message, function: String, param: String, params: Array<String>, originParams: Array<String>) {

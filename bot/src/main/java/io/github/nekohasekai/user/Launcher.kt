@@ -10,6 +10,7 @@ import io.github.nekohasekai.nekolib.core.utils.text
 import io.github.nekohasekai.user.tnf.FormatTestNumber
 import io.github.nekohasekai.user.tools.CleanDA
 import io.github.nekohasekai.user.tools.DelAll
+import io.github.nekohasekai.user.tools.DelMe
 import io.github.nekohasekai.user.tools.UpgradeToSupergroup
 import td.TdApi
 
@@ -34,11 +35,11 @@ object Launcher : TdCli() {
 
     override fun onLoad() {
 
-        super.onLoad()
-
         addHandler(FormatTestNumber())
 
         addHandler(CleanDA())
+
+        addHandler(DelMe())
 
         addHandler(DelAll())
 

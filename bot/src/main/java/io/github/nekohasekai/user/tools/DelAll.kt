@@ -21,8 +21,6 @@ class DelAll : TdHandler() {
 
         initFunction("del_all")
 
-        super.onLoad()
-
     }
 
     @ExperimentalStdlibApi
