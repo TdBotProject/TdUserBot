@@ -2,11 +2,7 @@ package io.github.nekohasekai.user.tools
 
 import io.github.nekohasekai.nekolib.core.client.TdHandler
 import io.github.nekohasekai.nekolib.core.raw.deleteChatMessagesFromUser
-import io.github.nekohasekai.nekolib.core.raw.deleteMessages
-import io.github.nekohasekai.nekolib.core.utils.checkChatAdmin
-import io.github.nekohasekai.nekolib.core.utils.delete
-import io.github.nekohasekai.nekolib.core.utils.fetchUserMessages
-import io.github.nekohasekai.nekolib.core.utils.isMyMessage
+import io.github.nekohasekai.nekolib.core.utils.*
 import td.TdApi
 
 class DelMe : TdHandler() {
@@ -21,13 +17,13 @@ class DelMe : TdHandler() {
 
         if (!isMyMessage(message)) return
 
-        if (checkChatAdmin(chatId, userId)) {
+        if (message.fromSuperGroup && message.replyToMessageId == 0L && isChatAdmin(chatId, userId)) {
 
             deleteChatMessagesFromUser(chatId, userId)
 
-        } else fetchUserMessages(chatId, userId) { messages ->
+        } else fetchUserMessages(chatId, userId,startsAt = message.replyToMessageId) { messages ->
 
-            delete(chatId, * messages.map { it.id }.toLongArray())
+            delete(chatId, * messages.filter { it.canBeDeletedForAllUsers }.map { it.id }.toLongArray())
 
             true
 
