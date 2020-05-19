@@ -48,13 +48,8 @@ object Launcher : TdCli() {
     }
 
     override suspend fun onNewMessage(userId: Int, chatId: Long, message: TdApi.Message) {
+
         super.onNewMessage(userId, chatId, message)
-
-        if (message.content is TdApi.MessagePinMessage) {
-
-            println("userId = $userId, chatId = $chatId, pinned = ${(message.content as TdApi.MessagePinMessage).messageId}")
-
-        }
 
         if (userId == 0) return
 
