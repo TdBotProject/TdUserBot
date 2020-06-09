@@ -1,13 +1,12 @@
 package io.github.nekohasekai.user
 
 import io.github.nekohasekai.nekolib.cli.TdCli
-import io.github.nekohasekai.nekolib.core.TdLoader
+import io.github.nekohasekai.nekolib.cli.TdLoader
 import io.github.nekohasekai.nekolib.core.raw.getChat
 import io.github.nekohasekai.nekolib.core.raw.getUser
 import io.github.nekohasekai.nekolib.core.utils.defaultLog
 import io.github.nekohasekai.nekolib.core.utils.displayName
 import io.github.nekohasekai.nekolib.core.utils.text
-import io.github.nekohasekai.user.tnf.FormatTestNumber
 import io.github.nekohasekai.user.tools.CleanDA
 import io.github.nekohasekai.user.tools.DelAll
 import io.github.nekohasekai.user.tools.DelMe
@@ -34,8 +33,6 @@ object Launcher : TdCli() {
     }
 
     override fun onLoad() {
-
-        addHandler(FormatTestNumber())
 
         addHandler(CleanDA())
 
