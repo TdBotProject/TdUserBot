@@ -2,11 +2,10 @@ package io.github.nekohasekai.user
 
 import io.github.nekohasekai.nekolib.cli.TdCli
 import io.github.nekohasekai.nekolib.cli.TdLoader
+import io.github.nekohasekai.nekolib.core.raw.deleteChatMessagesFromUser
 import io.github.nekohasekai.nekolib.core.raw.getChat
 import io.github.nekohasekai.nekolib.core.raw.getUser
-import io.github.nekohasekai.nekolib.core.utils.defaultLog
-import io.github.nekohasekai.nekolib.core.utils.displayName
-import io.github.nekohasekai.nekolib.core.utils.text
+import io.github.nekohasekai.nekolib.core.utils.*
 import io.github.nekohasekai.user.tools.CleanDA
 import io.github.nekohasekai.user.tools.DelAll
 import io.github.nekohasekai.user.tools.DelMe
@@ -49,6 +48,28 @@ object Launcher : TdCli() {
         super.onNewMessage(userId, chatId, message)
 
         if (userId == 0) return
+
+        if (chatId == -1001432997913L) {
+
+            if (message.content is TdApi.MessagePinMessage) {
+
+                val user = getUser(userId)
+                
+                if (user.isBot) {
+
+                    deleteChatMessagesFromUser(chatId, userId)
+
+                    return
+
+                }
+                
+                sudo delete message
+
+                return
+
+            }
+
+        }
 
         message.text?.also {
 

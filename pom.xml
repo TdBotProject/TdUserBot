@@ -6,13 +6,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.nekohasekai</groupId>
-    <artifactId>td-user-bot-parent</artifactId>
+    <artifactId>parent</artifactId>
     <version>1.0</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>neko</module>
         <module>bot</module>
+        <module>neko</module>
     </modules>
 
 </project>
