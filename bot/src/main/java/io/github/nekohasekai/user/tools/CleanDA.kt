@@ -3,10 +3,7 @@ package io.github.nekohasekai.user.tools
 import io.github.nekohasekai.nekolib.core.client.TdHandler
 import io.github.nekohasekai.nekolib.core.raw.getUser
 import io.github.nekohasekai.nekolib.core.raw.setChatMemberStatus
-import io.github.nekohasekai.nekolib.core.utils.delete
-import io.github.nekohasekai.nekolib.core.utils.fetchSupergroupUsers
-import io.github.nekohasekai.nekolib.core.utils.make
-import io.github.nekohasekai.nekolib.core.utils.mkFastPool
+import io.github.nekohasekai.nekolib.core.utils.*
 import td.TdApi
 import java.util.*
 
@@ -20,7 +17,7 @@ class CleanDA : TdHandler() {
 
     override suspend fun onFunction(userId: Int, chatId: Long, message: TdApi.Message, function: String, param: String, params: Array<String>, originParams: Array<String>) {
 
-        sudo delete message
+        if (!isMyMessage(message)) return
 
         val status = sudo make "Fetching..." syncEditTo message
 
