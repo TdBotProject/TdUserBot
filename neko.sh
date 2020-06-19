@@ -66,7 +66,7 @@ elif [ "$1" == "run" ]; then
 
   shift
 
-  java -jar $artifact.jar $@
+  java -server -jar $artifact.jar $@
 
 elif [ "$1" == "start" ]; then
 
