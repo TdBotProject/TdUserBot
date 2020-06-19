@@ -5,13 +5,6 @@ serviceName="td-user-bot"
 artifact="td-user-bot"
 # --------------------------- #
 
-LC_ALL="C"
-
-mvnHome=$M2_HOME
-if ! [ $mvnHome ]; then
-  mvnHome="$HOME/.m2"
-fi
-
 info() { echo "I: $*"; }
 
 error() {
@@ -82,9 +75,9 @@ elif [ "$1" == "restart" ]; then
 
 elif [ "$1" == "rebuild" ]; then
 
-  git submodule update --init --force --recursive
+  [ -f "neko/pom.xml" ] || git submodule update --init --force --recursive
 
-  mvn -Dmaven.repo.local="$mvnHome" clean package
+  bash mvnw clean package
 
   if [ $? -eq 0 ]; then
 
@@ -106,7 +99,8 @@ elif [ "$1" == "update" ]; then
 
   echo ">> 检出更新 $(git rev-parse FETCH_HEAD)"
 
-  git reset --hard FETCH_HEAD &>/dev/null
+  git reset --hard FETCH_HEAD
+  git submodule update --init --force --recursive
 
   bash $0 rebuild
 
