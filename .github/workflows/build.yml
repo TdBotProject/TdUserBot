@@ -25,7 +25,7 @@ jobs:
           java-version: 11
       - name: Run Maven Build
         run: |
-          bash neko.sh rebuild
+          bash neko.sh rebuild -P proguard
           echo ::set-env name=JAR_FILE::$(find bot/target -name "td-user-bot-*.jar")
       - name: Upload Jar
         uses: actions/upload-artifact@master

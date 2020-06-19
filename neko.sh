@@ -77,7 +77,10 @@ elif [ "$1" == "rebuild" ]; then
 
   [ -f "neko/pom.xml" ] || git submodule update --init --force --recursive
 
-  bash mvnw clean package
+  shift
+
+  bash mvnw clean package $@ &&
+  rm -f bot/target/*shaded.jar bot/target/*proguard_base.jar
 
   if [ $? -eq 0 ]; then
 
