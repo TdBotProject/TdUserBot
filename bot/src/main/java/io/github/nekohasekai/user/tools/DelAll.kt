@@ -30,6 +30,7 @@ class DelAll : TdHandler() {
 
         var all = true
         var sticker = false
+        var serviceMessage = false
 
         var hide = false
         var keepChannel = false
@@ -40,6 +41,11 @@ class DelAll : TdHandler() {
 
                 all = false
                 sticker = true
+
+            } else if (it == "-m" || it == "--service-message") {
+
+                all = false
+                serviceMessage = true
 
             } else if (it == "-k" || it == "--keep-channel") {
 
@@ -73,13 +79,18 @@ class DelAll : TdHandler() {
 
         val deletePool = mkFastPool()
 
-        fetchMessages(chatId,message.replyToMessageId) { msg ->
+        fetchMessages(chatId, message.replyToMessageId) { msg ->
 
             offset += msg.size
 
-            msg.filter { it.canBeDeletedForAllUsers && it.id != message.id && (all || (sticker && it.content is TdApi.MessageSticker)) }
-                    .filter { !keepChannel || it.senderUserId != 0 }
-                    .map { it.id }
+            msg.filter {
+                it.canBeDeletedForAllUsers && it.id != message.id && (
+                        all ||
+                                (sticker && it.content is TdApi.MessageSticker) ||
+                                (keepChannel && it.senderUserId != 0) ||
+                                (serviceMessage && it.isServiceMessage)
+                        )
+            }.map { it.id }
                     .toLongArray()
                     .takeIf { it.isNotEmpty() }
                     ?.also { deleteMessages(chatId, it, true) }
