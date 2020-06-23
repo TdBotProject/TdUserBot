@@ -56,6 +56,7 @@
                                 <option>-dontwarn</option>
                                 <option>-dontnote</option>
                                 <option>-keep class ${mainClass} { *; }</option>
+                                <option>-keep class td.** { *; }</option>
                             </options>
                             <libs>
                                 <lib>${java.home}/jmods/java.base.jmod</lib>
