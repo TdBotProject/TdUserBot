@@ -31,6 +31,7 @@ class DelAll : TdHandler() {
         var all = true
         var sticker = false
         var serviceMessage = false
+        var forward = false
 
         var hide = false
         var keepChannel = false
@@ -46,6 +47,11 @@ class DelAll : TdHandler() {
 
                 all = false
                 serviceMessage = true
+
+            } else if (it == "-f" || it == "--forward") {
+
+                all = false
+                forward = true
 
             } else if (it == "-k" || it == "--keep-channel") {
 
@@ -85,10 +91,11 @@ class DelAll : TdHandler() {
 
             msg.filter {
                 it.canBeDeletedForAllUsers && it.id != message.id && (
-                        all ||
+                        (!keepChannel || it.senderUserId == 0) && (all ||
                                 (sticker && it.content is TdApi.MessageSticker) ||
-                                (keepChannel && it.senderUserId != 0) ||
-                                (serviceMessage && it.isServiceMessage)
+                                (serviceMessage && it.isServiceMessage) ||
+                                (forward && it.forwardInfo != null)
+                                )
                         )
             }.map { it.id }
                     .toLongArray()

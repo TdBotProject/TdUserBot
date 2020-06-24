@@ -17,7 +17,9 @@ apt install -y openssl zlib1g libc++-dev default-jdk maven
 ```
 !del_me: 删除自己的所有消息在当前聊天
 !del_all: 删除所有消息在当前聊天
-  -s 仅贴纸
+  -s 贴纸
+  -f 转发
+  -m 服务消息
   -k 群组中保留频道消息
   -h 进度发送到收藏夹而不是当前聊天
 !upgrade: 升级基本群组到超级群组
