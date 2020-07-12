@@ -23,6 +23,7 @@ class FilterUsers : TdHandler() {
 
     override suspend fun onFunction(userId: Int, chatId: Long, message: TdApi.Message, function: String, param: String, params: Array<String>, originParams: Array<String>) {
 
+
         if (!isMyMessage(message)) return
 
         var noMsg = false
@@ -166,13 +167,11 @@ class FilterUsers : TdHandler() {
 
                     if (e.code == 429) {
 
-                        defaultLog.warn(e.message)
-
                         runCatching {
 
-                            val retryAfter = e.message.substringAfter("after").trim().toInt()
+                            sudo make "Deleting...  ${index + 1}/ ${toDelete.size}\n\nWaiting for rate limit: ${e.retryAfter.parseTime(true)}" editTo status
 
-                            ThreadUtil.sleep(retryAfter * 1000L)
+                            e.waitForRateLimit()
 
                         }
 
