@@ -3,6 +3,7 @@
 # --------------------------- #
 serviceName="td-user-bot"
 artifact="td-user-bot"
+module="bot"
 # --------------------------- #
 
 info() { echo "I: $*"; }
@@ -16,7 +17,7 @@ error() {
 
 if [ ! "$1" ]; then
 
-  echo "bash neko.sh [ init | update | run | log | start | stop | ... ]"
+  echo "bash $0 [ init | update | run | log | start | stop | ... ]"
 
   exit
 
@@ -35,7 +36,7 @@ Wants=network.target
 [Service]
 Type=simple
 WorkingDirectory=$(readlink -e ./)
-ExecStart=/bin/bash neko.sh run
+ExecStart=/bin/bash $0 run
 Restart=on-failure
 RestartPreventExitStatus=100
 
@@ -79,12 +80,12 @@ elif [ "$1" == "rebuild" ]; then
 
   shift
 
-  bash mvnw clean package $@ &&
-  rm -f bot/target/*shaded.jar bot/target/*proguard_base.jar
+  bash mvnw -T 1C clean package $@ &&
+    rm -f $module/target/*shaded.jar $module/target/*proguard_base.jar
 
   if [ $? -eq 0 ]; then
 
-    cp -f bot/target/$artifact-*.jar $artifact.jar
+    cp -f $module/target/$artifact-*.jar $artifact.jar
 
   fi
 
