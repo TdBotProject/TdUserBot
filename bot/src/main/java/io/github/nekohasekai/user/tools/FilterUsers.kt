@@ -1,7 +1,10 @@
 package io.github.nekohasekai.user.tools
 
 import io.github.nekohasekai.nekolib.core.client.TdHandler
-import io.github.nekohasekai.nekolib.core.raw.*
+import io.github.nekohasekai.nekolib.core.raw.getChat
+import io.github.nekohasekai.nekolib.core.raw.getUser
+import io.github.nekohasekai.nekolib.core.raw.searchChatMessages
+import io.github.nekohasekai.nekolib.core.raw.setChatMemberStatus
 import io.github.nekohasekai.nekolib.core.utils.*
 import io.github.nekohasekai.nekolib.i18n.LocaleController
 import io.github.nekohasekai.nekolib.i18n.UNKNOWN_PARAMETER
@@ -135,7 +138,7 @@ class FilterUsers : TdHandler() {
 
                 toDelete.add(member.userId)
 
-                pool.execute {
+                pool.executeTimed {
 
                     sudo make "Filtering... ${toDelete.size} / $count" editTo status
 
@@ -147,13 +150,19 @@ class FilterUsers : TdHandler() {
 
         }
 
-        pool.shutdown()
+        toDelete.forEachIndexed { index, it ->
 
-        toDelete.forEach {
+            setChatMemberStatus(chatId, it, TdApi.ChatMemberStatusLeft())
 
-            setChatMemberStatusWith(chatId, it, TdApi.ChatMemberStatusLeft())
+            pool.executeTimed {
+
+                sudo make "Filtering...  ${index + 1}/ ${toDelete.size}" editTo status
+
+            }
 
         }
+
+        pool.shutdown()
 
         sudo make "Finish, ${toDelete.size} deleted" sendTo chatId
 

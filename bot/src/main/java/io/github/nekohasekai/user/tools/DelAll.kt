@@ -103,7 +103,7 @@ class DelAll : TdHandler() {
                     ?.also { deleteMessages(chatId, it, true) }
                     ?.also { deleted += it.size }
 
-            deletePool.execute {
+            deletePool.executeTimed {
 
                 runBlocking {
 
