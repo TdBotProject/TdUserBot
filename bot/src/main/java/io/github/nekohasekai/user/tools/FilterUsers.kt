@@ -1,5 +1,7 @@
 package io.github.nekohasekai.user.tools
 
+import cn.hutool.core.thread.ThreadUtil
+import io.github.nekohasekai.nekolib.core.client.TdException
 import io.github.nekohasekai.nekolib.core.client.TdHandler
 import io.github.nekohasekai.nekolib.core.raw.getChat
 import io.github.nekohasekai.nekolib.core.raw.getUser
@@ -152,7 +154,35 @@ class FilterUsers : TdHandler() {
 
         toDelete.forEachIndexed { index, it ->
 
-            setChatMemberStatus(chatId, it, TdApi.ChatMemberStatusLeft())
+            do {
+
+                try {
+
+                    setChatMemberStatus(chatId, it, TdApi.ChatMemberStatusLeft())
+
+                    break
+
+                } catch (e: TdException) {
+
+                    if (e.code == 429) {
+
+                        runCatching {
+
+                            val retryAfter = e.message.substringAfter("after").trim().toLong()
+
+                            ThreadUtil.sleep(retryAfter)
+
+                        }.onFailure {
+
+                            defaultLog.warn(e.message)
+
+                        }
+
+                    }
+
+                }
+
+            } while (true)
 
             pool.executeTimed {
 
