@@ -34,7 +34,7 @@ class DelAll : TdHandler() {
 
 }
 
-suspend fun TdHandler.doDelAll(anchor: TdClient,chatId: Long,message: TdApi.Message,params: Array<String>) {
+suspend fun TdHandler.doDelAll(anchor: TdClient, chatId: Long, message: TdApi.Message, params: Array<String>) {
 
     var all = true
     var sticker = false
@@ -82,14 +82,14 @@ suspend fun TdHandler.doDelAll(anchor: TdClient,chatId: Long,message: TdApi.Mess
     val title = anchor.getChat(chatId).title
 
     val status = if (!hide && anchor == sudo) {
-        sudo make "Deleting..." syncEditTo message
-    } else {
-        if (anchor == sudo) {
-            sudo delete message
-            sudo make "Deleting from $title..." syncTo me.id
+        if (message.canBeEdited) {
+            sudo make "Deleting..." syncEditTo message
         } else {
             sudo make "Deleting..." syncReplyTo message
         }
+    } else {
+        sudo delete message
+        sudo make "Deleting from $title..." syncTo me.id
     }
 
     var deleted = 0

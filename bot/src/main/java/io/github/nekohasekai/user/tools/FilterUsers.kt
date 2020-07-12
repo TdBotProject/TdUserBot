@@ -25,11 +25,13 @@ class FilterUsers : TdHandler() {
 
         if (!isMyMessage(message)) return
 
+        doFilterUsers(sudo, chatId, message, params)
+
     }
 
 }
 
-suspend fun TdHandler.doFilterUsers(anchor: TdClient, chatId: Long,message: TdApi.Message,params: Array<String>) {
+suspend fun TdHandler.doFilterUsers(anchor: TdClient,chatId: Long,message: TdApi.Message,params: Array<String>) {
 
     var noMsg = false
     var noPhoto = false
@@ -73,7 +75,11 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient, chatId: Long,message: TdAp
     val title = getChat(chatId).title
 
     val status = if (!hide) {
-        sudo make "Filtering..." syncEditTo message
+        if (message.canBeEdited) {
+            sudo make "Filtering..." syncEditTo message
+        } else {
+            sudo make "Filtering..." syncReplyTo message
+        }
     } else {
         sudo delete message
         sudo make "Filtering from $title..." syncTo me.id
@@ -85,9 +91,9 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient, chatId: Long,message: TdAp
 
     var count = 0
 
-    fetchSupergroupUsers(chatId) {
+    anchor.fetchSupergroupUsers(chatId) { users ->
 
-        it.forEach { member ->
+        users.forEach { member ->
 
             count++
 
@@ -95,12 +101,12 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient, chatId: Long,message: TdAp
 
             var hasMsg = false
             var isAd = false
-            val user = getUser(member.userId)
+            val user = anchor.getUser(member.userId)
             val isDeleted = user.isDeleted
 
             if (!isDeleted && (noMsg || likeAd)) {
 
-                hasMsg = searchChatMessages(chatId, "", member.userId, 0, 0, 1, TdApi.SearchMessagesFilterEmpty()).totalCount > 0
+                hasMsg = anchor.searchChatMessages(chatId, "", member.userId, 0, 0, 1, TdApi.SearchMessagesFilterEmpty()).totalCount > 0
 
             }
 
@@ -194,8 +200,17 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient, chatId: Long,message: TdAp
 
     }
 
-    pool.shutdown()
+    pool.executeTimed {
 
-    sudo make "Finish, ${toDelete.size} deleted" sendTo chatId
+        sudo make "Finish, ${toDelete.size} deleted." at status edit withDelay {
+
+            if (anchor == sudo && !hide) delete(it)
+
+            pool.shutdown()
+
+        }
+
+
+    }
 
 }
