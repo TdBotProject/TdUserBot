@@ -166,19 +166,17 @@ class FilterUsers : TdHandler() {
 
                     if (e.code == 429) {
 
+                        defaultLog.warn(e.message)
+
                         runCatching {
 
-                            val retryAfter = e.message.substringAfter("after").trim().toLong()
+                            val retryAfter = e.message.substringAfter("after").trim().toInt()
 
-                            ThreadUtil.sleep(retryAfter)
-
-                        }.onFailure {
-
-                            defaultLog.warn(e.message)
+                            ThreadUtil.sleep(retryAfter * 1000L)
 
                         }
 
-                    }
+                    } else throw e
 
                 }
 
