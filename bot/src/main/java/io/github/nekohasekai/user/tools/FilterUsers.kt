@@ -16,7 +16,7 @@ class FilterUsers : TdHandler() {
 
     override fun onLoad() {
 
-        initFunction("td_filter_users")
+        initFunction("_filter_users")
 
     }
 
