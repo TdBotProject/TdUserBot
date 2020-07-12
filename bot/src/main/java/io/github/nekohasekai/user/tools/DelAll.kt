@@ -19,7 +19,7 @@ class DelAll : TdHandler() {
 
     override fun onLoad() {
 
-        initFunction("del_all")
+        initFunction("td_del_all")
 
     }
 

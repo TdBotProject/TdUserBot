@@ -1,6 +1,5 @@
 package io.github.nekohasekai.user.tools
 
-import cn.hutool.core.thread.ThreadUtil
 import io.github.nekohasekai.nekolib.core.client.TdException
 import io.github.nekohasekai.nekolib.core.client.TdHandler
 import io.github.nekohasekai.nekolib.core.raw.getChat
@@ -17,12 +16,11 @@ class FilterUsers : TdHandler() {
 
     override fun onLoad() {
 
-        initFunction("filter_users")
+        initFunction("td_filter_users")
 
     }
 
     override suspend fun onFunction(userId: Int, chatId: Long, message: TdApi.Message, function: String, param: String, params: Array<String>, originParams: Array<String>) {
-
 
         if (!isMyMessage(message)) return
 

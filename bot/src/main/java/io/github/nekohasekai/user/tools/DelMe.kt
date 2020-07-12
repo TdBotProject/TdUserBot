@@ -9,7 +9,7 @@ class DelMe : TdHandler() {
 
     override fun onLoad() {
 
-        initFunction("del_me")
+        initFunction("td_del_me")
 
     }
 

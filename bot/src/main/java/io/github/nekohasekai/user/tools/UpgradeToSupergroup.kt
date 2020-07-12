@@ -11,7 +11,7 @@ class UpgradeToSupergroup : TdHandler() {
 
     override fun onLoad() {
 
-        initFunction("upgrade")
+        initFunction("td_upgrade")
 
     }
 
