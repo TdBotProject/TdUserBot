@@ -23,5 +23,10 @@ apt install -y openssl zlib1g libc++-dev default-jdk maven
   -k 群组中保留频道消息
   -h 进度发送到收藏夹而不是当前聊天
 !upgrade: 升级基本群组到超级群组
-!clean_da: 清理群组/频道中的死号
+!filter_users: 清理群组 / 频道成员
+  -m 无发言
+  -p 无头像
+  -a 看起来像广告 (-m && -p && 另外一个特征)
+  -k 不清理死号
+  -h 进度发送到收藏夹而不是当前聊天
 ```

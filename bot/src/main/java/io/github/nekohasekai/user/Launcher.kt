@@ -7,12 +7,11 @@ import io.github.nekohasekai.nekolib.core.raw.deleteChatMessagesFromUser
 import io.github.nekohasekai.nekolib.core.raw.getChat
 import io.github.nekohasekai.nekolib.core.raw.getUser
 import io.github.nekohasekai.nekolib.core.utils.*
-import io.github.nekohasekai.user.tools.CleanDA
 import io.github.nekohasekai.user.tools.DelAll
 import io.github.nekohasekai.user.tools.DelMe
+import io.github.nekohasekai.user.tools.FilterUsers
 import io.github.nekohasekai.user.tools.UpgradeToSupergroup
 import td.TdApi
-import java.lang.management.ManagementFactory
 
 object Launcher : TdCli() {
 
@@ -49,7 +48,7 @@ object Launcher : TdCli() {
 
         }
 
-        addHandler(CleanDA())
+        addHandler(FilterUsers())
 
         addHandler(DelMe())
 
