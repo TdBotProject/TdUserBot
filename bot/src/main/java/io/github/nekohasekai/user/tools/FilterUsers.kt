@@ -156,7 +156,7 @@ class FilterUsers : TdHandler() {
 
             pool.executeTimed {
 
-                sudo make "Filtering...  ${index + 1}/ ${toDelete.size}" editTo status
+                sudo make "Deleting...  ${index + 1}/ ${toDelete.size}" editTo status
 
             }
 
