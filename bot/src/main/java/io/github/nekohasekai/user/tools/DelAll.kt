@@ -1,5 +1,6 @@
 package io.github.nekohasekai.user.tools
 
+import io.github.nekohasekai.nekolib.core.client.TdClient
 import io.github.nekohasekai.nekolib.core.client.TdHandler
 import io.github.nekohasekai.nekolib.core.raw.deleteMessages
 import io.github.nekohasekai.nekolib.core.raw.getChat
@@ -23,103 +24,120 @@ class DelAll : TdHandler() {
 
     }
 
-    @ExperimentalStdlibApi
     override suspend fun onFunction(userId: Int, chatId: Long, message: TdApi.Message, function: String, param: String, params: Array<String>, originParams: Array<String>) {
 
         if (!isMyMessage(message)) return
 
-        var all = true
-        var sticker = false
-        var serviceMessage = false
-        var forward = false
+        doDelAll(sudo, chatId, message, params)
 
-        var hide = false
-        var keepChannel = false
+    }
 
-        params.forEach {
+}
 
-            if (it == "-s" || it == "--sticker") {
+suspend fun TdHandler.doDelAll(anchor: TdClient,chatId: Long,message: TdApi.Message,params: Array<String>) {
 
-                all = false
-                sticker = true
+    var all = true
+    var sticker = false
+    var serviceMessage = false
+    var forward = false
 
-            } else if (it == "-m" || it == "--service-message") {
+    var hide = false
+    var keepChannel = false
 
-                all = false
-                serviceMessage = true
+    params.forEach {
 
-            } else if (it == "-f" || it == "--forward") {
+        if (it == "-s" || it == "--sticker") {
 
-                all = false
-                forward = true
+            all = false
+            sticker = true
 
-            } else if (it == "-k" || it == "--keep-channel") {
+        } else if (it == "-m" || it == "--service-message") {
 
-                keepChannel = true
+            all = false
+            serviceMessage = true
 
-            } else if (it == "-h" || it == "--hide") {
+        } else if (it == "-f" || it == "--forward") {
 
-                hide = true
+            all = false
+            forward = true
 
-            } else {
+        } else if (it == "-k" || it == "--keep-channel") {
 
-                sudo make LocaleController.UNKNOWN_PARAMETER.input(it) replyTo message send deleteDelay(message)
+            keepChannel = true
 
-                return
+        } else if (it == "-h" || it == "--hide") {
 
-            }
+            hide = true
+
+        } else {
+
+            sudo make LocaleController.UNKNOWN_PARAMETER.input(it) replyTo message send deleteDelay(message)
+
+            return
 
         }
 
-        val title = getChat(chatId).title
+    }
 
-        val status = if (!hide) {
-            sudo make "Deleting..." syncEditTo message
-        } else {
+    val title = anchor.getChat(chatId).title
+
+    val status = if (!hide && anchor == sudo) {
+        sudo make "Deleting..." syncEditTo message
+    } else {
+        if (anchor == sudo) {
             sudo delete message
             sudo make "Deleting from $title..." syncTo me.id
+        } else {
+            sudo make "Deleting..." syncReplyTo message
         }
+    }
 
-        var deleted = 0
-        var offset = 0
+    var deleted = 0
+    var offset = 0
 
-        val deletePool = mkFastPool()
+    val deletePool = mkFastPool()
 
-        fetchMessages(chatId, message.replyToMessageId) { msg ->
+    anchor.fetchMessages(chatId, message.replyToMessageId) { msg ->
 
-            offset += msg.size
+        offset += msg.size
 
-            msg.filter {
-                it.canBeDeletedForAllUsers && it.id != message.id && (
-                        (!keepChannel || it.senderUserId == 0) && (all ||
-                                (sticker && it.content is TdApi.MessageSticker) ||
-                                (serviceMessage && it.isServiceMessage) ||
-                                (forward && it.forwardInfo != null)
-                                )
-                        )
-            }.map { it.id }
-                    .toLongArray()
-                    .takeIf { it.isNotEmpty() }
-                    ?.also { deleteMessages(chatId, it, true) }
-                    ?.also { deleted += it.size }
+        msg.filter {
+            it.canBeDeletedForAllUsers && it.id != message.id && (
+                    (!keepChannel || it.senderUserId == 0) && (all ||
+                            (sticker && it.content is TdApi.MessageSticker) ||
+                            (serviceMessage && it.isServiceMessage) ||
+                            (forward && it.forwardInfo != null)
+                            )
+                    )
+        }.map { it.id }
+                .toLongArray()
+                .takeIf { it.isNotEmpty() }
+                ?.also { anchor.deleteMessages(chatId, it, true) }
+                ?.also { deleted += it.size }
 
-            deletePool.executeTimed {
+        deletePool.executeTimed {
 
-                runBlocking {
+            runBlocking {
 
-                    sudo make "${if (!hide) "Deleting" else "Deleting from $title"} ($deleted / $offset) ..." syncEditTo status
-
-                }
+                sudo make "${if (!hide) "Deleting" else "Deleting from $title"} ($deleted / $offset) ..." syncEditTo status
 
             }
 
-            true
-
         }
 
-        deletePool.shutdown()
+        true
 
-        sudo make "Deleted $deleted messages${if (hide) " at $title" else ""}." at status edit deleteDelay()
+    }
+
+    deletePool.executeTimed {
+
+        sudo make "Deleted $deleted messages${if (hide) " at $title" else ""}." at status edit withDelay {
+
+            if (anchor == sudo && !hide) delete(it)
+
+            deletePool.shutdown()
+
+        }
 
     }
 

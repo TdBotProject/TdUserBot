@@ -1,5 +1,6 @@
 package io.github.nekohasekai.user.tools
 
+import io.github.nekohasekai.nekolib.core.client.TdClient
 import io.github.nekohasekai.nekolib.core.client.TdException
 import io.github.nekohasekai.nekolib.core.client.TdHandler
 import io.github.nekohasekai.nekolib.core.raw.getChat
@@ -24,173 +25,177 @@ class FilterUsers : TdHandler() {
 
         if (!isMyMessage(message)) return
 
-        var noMsg = false
-        var noPhoto = false
-        var likeAd = false
+    }
 
-        var hide = false
-        var keepDeleted = false
+}
 
-        params.forEach {
+suspend fun TdHandler.doFilterUsers(anchor: TdClient, chatId: Long,message: TdApi.Message,params: Array<String>) {
 
-            if (it == "-m" || it == "--no-msg") {
+    var noMsg = false
+    var noPhoto = false
+    var likeAd = false
 
-                noMsg = true
+    var hide = false
+    var keepDeleted = false
 
-            } else if (it == "-p" || it == "--no-photo") {
+    params.forEach {
 
-                noPhoto = true
+        if (it == "-m" || it == "--no-msg") {
 
-            } else if (it == "-a" || it == "--like-ad") {
+            noMsg = true
 
-                likeAd = true
+        } else if (it == "-p" || it == "--no-photo") {
 
-            } else if (it == "-k" || it == "--keep-deleted") {
+            noPhoto = true
 
-                keepDeleted = true
+        } else if (it == "-a" || it == "--like-ad") {
 
-            } else if (it == "-h" || it == "--hide") {
+            likeAd = true
 
-                hide = true
+        } else if (it == "-k" || it == "--keep-deleted") {
 
-            } else {
+            keepDeleted = true
 
-                sudo make LocaleController.UNKNOWN_PARAMETER.input(it) replyTo message send deleteDelay(message)
+        } else if (it == "-h" || it == "--hide") {
 
-                return
+            hide = true
+
+        } else {
+
+            sudo make LocaleController.UNKNOWN_PARAMETER.input(it) replyTo message send deleteDelay(message)
+
+            return
+
+        }
+
+    }
+
+    val title = getChat(chatId).title
+
+    val status = if (!hide) {
+        sudo make "Filtering..." syncEditTo message
+    } else {
+        sudo delete message
+        sudo make "Filtering from $title..." syncTo me.id
+    }
+
+    val toDelete = LinkedList<Int>()
+
+    val pool = mkFastPool()
+
+    var count = 0
+
+    fetchSupergroupUsers(chatId) {
+
+        it.forEach { member ->
+
+            count++
+
+            if (member.status is TdApi.ChatMemberStatusAdministrator) return@forEach
+
+            var hasMsg = false
+            var isAd = false
+            val user = getUser(member.userId)
+            val isDeleted = user.isDeleted
+
+            if (!isDeleted && (noMsg || likeAd)) {
+
+                hasMsg = searchChatMessages(chatId, "", member.userId, 0, 0, 1, TdApi.SearchMessagesFilterEmpty()).totalCount > 0
 
             }
 
-        }
+            if (!isDeleted && likeAd) {
 
-        val title = getChat(chatId).title
+                isAd = !hasMsg && user.profilePhoto == null
 
-        val status = if (!hide) {
-            sudo make "Filtering..." syncEditTo message
-        } else {
-            sudo delete message
-            sudo make "Filtering from $title..." syncTo me.id
-        }
+                if (isAd) {
 
-        val toDelete = LinkedList<Int>()
+                    val userName = user.displayName.replace(" ", "")
 
-        val pool = mkFastPool()
+                    isAd = if (userName.length in 2..3) {
 
-        var count = 0
+                        userName.all { Character.UnicodeScript.of(it.toInt()) == Character.UnicodeScript.HAN }
 
-        fetchSupergroupUsers(chatId) {
+                    } else {
 
-            it.forEach { member ->
-
-                count++
-
-                if (member.status is TdApi.ChatMemberStatusAdministrator) return@forEach
-
-                var hasMsg = false
-                var isAd = false
-                val user = getUser(member.userId)
-                val isDeleted = user.isDeleted
-
-                if (!isDeleted && (noMsg || likeAd)) {
-
-                    hasMsg = searchChatMessages(chatId, "", member.userId, 0, 0, 1, TdApi.SearchMessagesFilterEmpty()).totalCount > 0
-
-                }
-
-                if (!isDeleted && likeAd) {
-
-                    isAd = !hasMsg && user.profilePhoto == null
-
-                    if (isAd) {
-
-                        val userName = user.displayName.replace(" ", "")
-
-                        isAd = if (userName.length in 2..3) {
-
-                            userName.all { Character.UnicodeScript.of(it.toInt()) == Character.UnicodeScript.HAN }
-
-                        } else {
-
-                            false
-
-                        }
+                        false
 
                     }
 
                 }
 
-                if (noMsg && hasMsg) {
+            }
 
-                    return@forEach
+            if (noMsg && hasMsg) {
 
-                } else if (noPhoto && user.profilePhoto != null) {
+                return@forEach
 
-                    return@forEach
+            } else if (noPhoto && user.profilePhoto != null) {
 
-                } else if (likeAd && !isAd) {
+                return@forEach
 
-                    return@forEach
+            } else if (likeAd && !isAd) {
 
-                } else if (isDeleted && keepDeleted) {
+                return@forEach
 
-                    return@forEach
+            } else if (isDeleted && keepDeleted) {
 
-                }
-
-                toDelete.add(member.userId)
-
-                pool.executeTimed {
-
-                    sudo make "Filtering... ${toDelete.size} / $count" editTo status
-
-                }
+                return@forEach
 
             }
 
-            true
-
-        }
-
-        toDelete.forEachIndexed { index, it ->
-
-            do {
-
-                try {
-
-                    setChatMemberStatus(chatId, it, TdApi.ChatMemberStatusLeft())
-
-                    break
-
-                } catch (e: TdException) {
-
-                    if (e.code == 429) {
-
-                        runCatching {
-
-                            sudo make "Deleting...  ${index + 1}/ ${toDelete.size}\n\nWaiting for rate limit: ${e.retryAfter.parseTime(true)}" editTo status
-
-                            e.waitForRateLimit()
-
-                        }
-
-                    } else throw e
-
-                }
-
-            } while (true)
+            toDelete.add(member.userId)
 
             pool.executeTimed {
 
-                sudo make "Deleting...  ${index + 1}/ ${toDelete.size}" editTo status
+                sudo make "Filtering... ${toDelete.size} / $count" editTo status
 
             }
 
         }
 
-        pool.shutdown()
-
-        sudo make "Finish, ${toDelete.size} deleted" sendTo chatId
+        true
 
     }
+
+    toDelete.forEachIndexed { index, it ->
+
+        do {
+
+            try {
+
+                setChatMemberStatus(chatId, it, TdApi.ChatMemberStatusLeft())
+
+                break
+
+            } catch (e: TdException) {
+
+                if (e.code == 429) {
+
+                    runCatching {
+
+                        sudo make "Deleting...  ${index + 1}/ ${toDelete.size}\n\nWaiting for rate limit: ${e.retryAfter.parseTime(true)}" editTo status
+
+                        e.waitForRateLimit()
+
+                    }
+
+                } else throw e
+
+            }
+
+        } while (true)
+
+        pool.executeTimed {
+
+            sudo make "Deleting...  ${index + 1}/ ${toDelete.size}" editTo status
+
+        }
+
+    }
+
+    pool.shutdown()
+
+    sudo make "Finish, ${toDelete.size} deleted" sendTo chatId
 
 }
