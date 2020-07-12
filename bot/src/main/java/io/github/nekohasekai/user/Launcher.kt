@@ -11,13 +11,28 @@ import io.github.nekohasekai.user.tools.DelAll
 import io.github.nekohasekai.user.tools.DelMe
 import io.github.nekohasekai.user.tools.FilterUsers
 import io.github.nekohasekai.user.tools.UpgradeToSupergroup
+import kotlinx.coroutines.delay
 import td.TdApi
 
 object Launcher : TdCli() {
 
-    lateinit var parameters: Array<String>
+    var parameters: Array<String> = arrayOf()
 
-    override val loginType = LoginType.USER
+    var isSubBot = false
+    var loaded = false
+
+    override val loginType get() = getLoginType()
+
+    @JvmName("_getLoginType")
+    private fun getLoginType(): LoginType {
+
+//        if (isSubBot) return LoginType.USER
+//
+//        return LoginType.ALL
+
+        return LoginType.USER
+
+    }
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -31,6 +46,8 @@ object Launcher : TdCli() {
     }
 
     override fun onLoad() {
+
+        if (isSubBot) options databaseDirectory "data/user"
 
         if (parameters.isNotEmpty()) {
 
@@ -60,6 +77,8 @@ object Launcher : TdCli() {
 
     override suspend fun onNewMessage(userId: Int, chatId: Long, message: TdApi.Message) {
 
+        while (isSubBot && !loaded) delay(1000L)
+
         super.onNewMessage(userId, chatId, message)
 
         if (userId == 0) return
@@ -69,7 +88,7 @@ object Launcher : TdCli() {
             if (message.content is TdApi.MessagePinMessage) {
 
                 val user = getUser(userId)
-                
+
                 if (user.isBot) {
 
                     deleteChatMessagesFromUser(chatId, userId)
@@ -77,7 +96,7 @@ object Launcher : TdCli() {
                     return
 
                 }
-                
+
                 sudo delete message
 
                 return
