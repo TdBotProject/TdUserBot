@@ -1,5 +1,8 @@
 package io.github.nekohasekai.user.tools
 
+import com.pengrad.telegrambot.request.KickChatMember
+import com.pengrad.telegrambot.request.UnbanChatMember
+import io.github.nekohasekai.nekolib.cli.TdCli
 import io.github.nekohasekai.nekolib.core.client.TdClient
 import io.github.nekohasekai.nekolib.core.client.TdException
 import io.github.nekohasekai.nekolib.core.client.TdHandler
@@ -10,6 +13,7 @@ import io.github.nekohasekai.nekolib.core.raw.setChatMemberStatus
 import io.github.nekohasekai.nekolib.core.utils.*
 import io.github.nekohasekai.nekolib.i18n.LocaleController
 import io.github.nekohasekai.nekolib.i18n.UNKNOWN_PARAMETER
+import kotlinx.coroutines.runBlocking
 import td.TdApi
 import java.util.*
 
@@ -31,7 +35,7 @@ class FilterUsers : TdHandler() {
 
 }
 
-suspend fun TdHandler.doFilterUsers(anchor: TdClient,chatId: Long,message: TdApi.Message,params: Array<String>) {
+suspend fun TdHandler.doFilterUsers(anchor: TdClient, chatId: Long, message: TdApi.Message, params: Array<String>) {
 
     var noMsg = false
     var noPhoto = false
@@ -110,7 +114,7 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient,chatId: Long,message: TdApi
 
                 val msgs = anchor.searchChatMessages(chatId, "", member.userId, 0, 0, 1, TdApi.SearchMessagesFilterEmpty())
 
-                hasMsg = if (msgs.totalCount > 0){
+                hasMsg = if (msgs.totalCount > 0) {
                     !msgs.messages[0].isServiceMessage
                 } else false
 
@@ -160,7 +164,19 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient,chatId: Long,message: TdApi
 
             pool.executeTimed {
 
-                sudo make "Filtering... ${toDelete.size} / $count" editTo status
+                runBlocking {
+
+                    try {
+
+                        sudo make "Filtering... ${toDelete.size} / $count" syncEditTo status
+
+                    } catch (e: TdException) {
+
+                        e.waitForRateLimit()
+
+                    }
+
+                }
 
             }
 
@@ -176,7 +192,18 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient,chatId: Long,message: TdApi
 
             try {
 
-                setChatMemberStatus(chatId, it, TdApi.ChatMemberStatusLeft())
+                val botToken = (sudo as TdCli).botToken
+
+                if (botToken.isNotBlank()) {
+
+                    httpSync(botToken, KickChatMember(chatId, it))
+                    httpSync(botToken, UnbanChatMember(chatId, it))
+
+                } else {
+
+                    setChatMemberStatus(chatId, it, TdApi.ChatMemberStatusLeft())
+
+                }
 
                 break
 
