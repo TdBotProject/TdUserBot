@@ -104,9 +104,15 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient,chatId: Long,message: TdApi
             val user = anchor.getUser(member.userId)
             val isDeleted = user.isDeleted
 
+            if (user.isBot) return@forEach
+
             if (!isDeleted && (noMsg || likeAd)) {
 
-                hasMsg = anchor.searchChatMessages(chatId, "", member.userId, 0, 0, 1, TdApi.SearchMessagesFilterEmpty()).totalCount > 0
+                val msgs = anchor.searchChatMessages(chatId, "", member.userId, 0, 0, 1, TdApi.SearchMessagesFilterEmpty())
+
+                hasMsg = if (msgs.totalCount > 0){
+                    !msgs.messages[0].isServiceMessage
+                } else false
 
             }
 
