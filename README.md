@@ -2,16 +2,29 @@
 
 ## 安装
 
-#### 依赖
+#### 依赖 (Linux)
 
 ```shell script
-apt install -y openssl zlib1g libc++-dev default-jdk maven
+apt install -y openssl git zlib1g libc++-dev default-jdk
 ```
+
+(Windows 下会自动下载)
+
+注： 仅支持 `Win32, Win64, Linux amd64, Linux i386, Linux arm64`, 否则需自行编译 [LibTDJNi](https://github.com/TdBotProject/LibTDJni) 放置在 libs 文件夹下.
 
 ## 配置 ( 环境变量, 可选 )
 
 `BOT_LANG`: 工作语言, 暂仅支持 `zh_CN`, `en_US`, 默认简中.  
 `BINLOG`: 指定 binlog, 跳过交互式认证.
+
+## 管理
+
+`./bot.sh run` 进入交互式认证  
+`./bot.sh init` 注册 systemd 服务  
+`./bot.sh <start/stop/restart>` 启动停止  
+`./bot.sh <enable/disable>` 启用禁用  
+`./bot.sh log` 实时日志  
+`./bot.sh logs` 打印所有日志
 
 ## 使用
 
