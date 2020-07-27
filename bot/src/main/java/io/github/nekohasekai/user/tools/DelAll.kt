@@ -40,6 +40,7 @@ suspend fun TdHandler.doDelAll(anchor: TdClient, chatId: Long, message: TdApi.Me
     var sticker = false
     var serviceMessage = false
     var forward = false
+    var document = false
 
     var hide = false
     var keepChannel = false
@@ -55,6 +56,11 @@ suspend fun TdHandler.doDelAll(anchor: TdClient, chatId: Long, message: TdApi.Me
 
             all = false
             serviceMessage = true
+
+        } else if (it == "-d" || it == "--document") {
+
+            all = false
+            document = true
 
         } else if (it == "-f" || it == "--forward") {
 
@@ -106,6 +112,7 @@ suspend fun TdHandler.doDelAll(anchor: TdClient, chatId: Long, message: TdApi.Me
                     (!keepChannel || it.senderUserId == 0) && (all ||
                             (sticker && it.content is TdApi.MessageSticker) ||
                             (serviceMessage && it.isServiceMessage) ||
+                            (document && it.content is TdApi.MessageDocument) ||
                             (forward && it.forwardInfo != null)
                             )
                     )
