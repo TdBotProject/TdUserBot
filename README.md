@@ -17,6 +17,8 @@ apt install -y openssl git zlib1g libc++-dev default-jdk
 `BOT_LANG`: 工作语言, 暂仅支持 `zh_CN`, `en_US`, 默认简中.  
 `BINLOG`: 指定 binlog, 跳过交互式认证.
 
+`BINLOG` 可使用 `./bot.sh run export` 导出.
+
 ## 管理
 
 `./bot.sh run` 进入交互式认证  
@@ -26,11 +28,31 @@ apt install -y openssl git zlib1g libc++-dev default-jdk
 `./bot.sh log` 实时日志  
 `./bot.sh logs` 打印所有日志
 
+## Docker
+
+```
+mkdir -p user-data
+
+// 交互登录
+
+docker run --rm -it \
+  -v $PWD/user-data:/root/data \
+  docker.pkg.github.com/tdbotproject/tduserbot/td-user
+
+// 后台运行
+
+docker run -d --name td-user \
+  -v $PWD/user-data:/root/data \
+  docker.pkg.github.com/tdbotproject/tduserbot/td-user
+
+// 日志
+
+docker logs td-pm -f -t
+```
+
 ## 使用
 
 `注: 为防止与其他机器人框架的命令重复, 建议使用 "!" 作为命令前缀而不是 "/".`
-
-`注2: 为防止与 TdGroupBot 的命令重复, 添加 "_" 作为命令前缀.`
 
 ```
 !del_me: 删除自己的所有消息在当前聊天

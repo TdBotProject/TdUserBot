@@ -1,9 +1,12 @@
-name: Master Branch Build
+name: Build
 
 on:
   push:
     branches:
-      - master
+      - dev
+  pull_request:
+    branches:
+      - dev
 
 jobs:
   mvnBuild:
@@ -11,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - run:  git submodule update --init --force --recursive
       - uses: actions/cache@v1
         with:
           path: ~/.m2
@@ -20,8 +24,8 @@ jobs:
           java-version: 11
       - name: Run Maven Build
         run: |
-          bash bot.sh rebuild
-          echo ::set-env name=JAR_FILE::$(find bot/target -name "td-user-bot.jar")
+          ./bot.sh rebuild
+          echo ::set-env name=JAR_FILE::$(find . -maxdepth 1 -name *.jar)
       - name: Upload Jar
         uses: actions/upload-artifact@master
         with:
