@@ -33,18 +33,19 @@ apt install -y openssl git zlib1g libc++-dev default-jdk
 `注2: 为防止与 TdGroupBot 的命令重复, 添加 "_" 作为命令前缀.`
 
 ```
-!_del_me: 删除自己的所有消息在当前聊天
-!_del_all: 删除所有消息在当前聊天
+!del_me: 删除自己的所有消息在当前聊天
+!del_all: 删除所有消息在当前聊天
   -s 贴纸
   -f 转发
   -m 服务消息
   -k 群组中保留频道消息
   -h 进度发送到收藏夹而不是当前聊天
-!_upgrade: 升级基本群组到超级群组
-!_filter_users: 清理群组 / 频道成员
+!upgrade: 升级基本群组到超级群组
+!filter_users: 清理群组 / 频道成员
   -m 无发言
   -p 无头像
   -a 看起来像广告 (-m && -p && 另外一个特征)
   -k 不清理死号
   -h 进度发送到收藏夹而不是当前聊天
+!chat_in_common <目标> : 查找共同聊天, 包括群组与自己为管理员的频道.
 ```

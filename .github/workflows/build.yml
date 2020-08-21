@@ -2,18 +2,13 @@ name: Master Branch Build
 
 on:
   push:
-    paths-ignore:
-      - '**.md'
-      - '.github/**'
-      - '!.github/workflows/**'
     branches:
       - master
 
 jobs:
   mvnBuild:
-    name: Alaha Build
+    name: Maven Build
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[s]')"
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v1
@@ -25,8 +20,8 @@ jobs:
           java-version: 11
       - name: Run Maven Build
         run: |
-          bash bot.sh rebuild -P proguard
-          echo ::set-env name=JAR_FILE::$(find bot/target -name "td-user-bot-*.jar")
+          bash bot.sh rebuild
+          echo ::set-env name=JAR_FILE::$(find bot/target -name "td-user-bot.jar")
       - name: Upload Jar
         uses: actions/upload-artifact@master
         with:

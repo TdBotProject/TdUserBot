@@ -3,7 +3,7 @@ target/
 /data/
 /cache/
 /libs/
-/config.yml
+/user.conf
 *.iml
 dependency-reduced-pom.xml
 *.jar

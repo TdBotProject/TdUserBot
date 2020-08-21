@@ -10,17 +10,11 @@ import io.github.nekohasekai.nekolib.i18n.UNKNOWN_PARAMETER
 import kotlinx.coroutines.runBlocking
 import td.TdApi
 
-/**
- * 消息清理
- *
- * TODO: 国际化
- * TODO: 更多筛选器
- */
 class DelAll : TdHandler() {
 
     override fun onLoad() {
 
-        initFunction("_del_all")
+        initFunction("del_all")
 
     }
 
@@ -77,7 +71,7 @@ suspend fun TdHandler.doDelAll(anchor: TdClient, chatId: Long, message: TdApi.Me
 
         } else {
 
-            sudo make LocaleController.UNKNOWN_PARAMETER.input(it) replyTo message send deleteDelay(message)
+            sudo make LocaleController.UNKNOWN_PARAMETER.input(it) onSuccess deleteDelay(message) replyTo message
 
             return
 
@@ -138,13 +132,13 @@ suspend fun TdHandler.doDelAll(anchor: TdClient, chatId: Long, message: TdApi.Me
 
     deletePool.executeTimed {
 
-        sudo make "Deleted $deleted messages${if (hide) " at $title" else ""}." at status edit withDelay {
+        sudo make "Deleted $deleted messages${if (hide) " at $title" else ""}." onSuccess withDelay {
 
             if (anchor == sudo && !hide) delete(it)
 
             deletePool.shutdown()
 
-        }
+        } editTo status
 
     }
 

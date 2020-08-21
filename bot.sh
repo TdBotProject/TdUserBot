@@ -1,9 +1,14 @@
 #!/bin/bash
 
 # --------------------------- #
-serviceName="td-user-bot"
-artifact="td-user-bot"
-module="bot"
+ARTIFACT="td-user-bot"
+MODULE="bot"
+SERVICE_NAME="td-user"
+MVN_ARGS=""
+JAVA_ARGS=""
+ARGS=""
+
+[ -f "user.conf" ] && source "user.conf"
 # --------------------------- #
 
 info() { echo "I: $*"; }
@@ -27,9 +32,9 @@ if [ "$1" == "init" ]; then
 
   echo ">> 写入服务"
 
-  cat >/etc/systemd/system/$serviceName.service <<EOF
+  cat >/etc/systemd/system/$SERVICE_NAME.service <<EOF
 [Unit]
-Description=Telegram Bot ($serviceName)
+Description=Telegram Bot ($SERVICE_NAME)
 After=network.target
 Wants=network.target
 
@@ -48,7 +53,7 @@ EOF
 
   echo ">> 写入启动项"
 
-  systemctl enable $serviceName &>/dev/null
+  systemctl enable $SERVICE_NAME &>/dev/null
 
   echo "<< 完毕."
 
@@ -56,21 +61,41 @@ EOF
 
 elif [ "$1" == "run" ]; then
 
-  [ -f "$artifact.jar" ] || bash $0 rebuild
+  target="$ARTIFACT-$(git rev-parse --short HEAD).jar"
+
+  #  if [ ! -x "$(find . -maxdepth 1 -name ${artifact}-*))" ]; then
+  #    for oldTarget in ./${artifact}-*; do
+  if [ ! -x "$(find . -maxdepth 1 -type f -name '*.jar'))" ]; then
+    for oldTarget in ./*.jar; do
+      if [ ! $oldTarget -ef $target ]; then
+        rm $oldTarget
+      fi
+    done
+  fi
+
+  [ -f "$target" ] || bash $0 rebuild || exit 1
 
   shift
 
-  java -server -jar $artifact.jar $@
+  if [ ! -x "$@" ]; then
+
+    exec java $JAVA_ARGS -jar $target $@
+
+  else
+
+    exec java $JAVA_ARGS -jar $target $ARGS
+
+  fi
 
 elif [ "$1" == "start" ]; then
 
-  systemctl start $serviceName
+  systemctl start $SERVICE_NAME
 
   bash $0 log
 
 elif [ "$1" == "restart" ]; then
 
-  systemctl restart $serviceName
+  systemctl restart $SERVICE_NAME &
 
   bash $0 log
 
@@ -88,14 +113,9 @@ elif [ "$1" == "rebuild" ]; then
 
   shift
 
-  bash mvnw -T 1C clean package $@ &&
-    rm -f $module/target/*shaded.jar $module/target/*proguard_base.jar
+  target="$ARTIFACT-$(git rev-parse --short HEAD).jar"
 
-  if [ $? -eq 0 ]; then
-
-    cp -f $module/target/$artifact-*.jar $artifact.jar
-
-  fi
+  bash mvnw $MVN_ARGS -T 1C clean package && cp -f $MODULE/target/$ARTIFACT.jar $target
 
 elif [ "$1" == "update" ]; then
 
@@ -114,22 +134,45 @@ elif [ "$1" == "update" ]; then
   git reset --hard FETCH_HEAD
   git submodule update --init --force --recursive
 
-  bash $0 rebuild
+  shift
+
+  bash $0 rebuild $@
 
   exit $?
 
+elif [ "$1" == "upgrade" ]; then
+
+  git fetch &>/dev/null
+
+  if [ "$(git rev-parse HEAD)" = "$(git rev-parse FETCH_HEAD)" ]; then
+
+    echo "<< 没有更新"
+
+    exit 1
+
+  fi
+
+  echo ">> 检出更新 $(git rev-parse FETCH_HEAD)"
+
+  git reset --hard FETCH_HEAD
+  git submodule update --init --force --recursive
+
+  shift
+
+  bash $0 rebuild $@ && bash $0 restart
+
 elif [ "$1" == "log" ]; then
 
-  journalctl -u $serviceName -f
+  journalctl -u $SERVICE_NAME -o short --no-hostname -f -n 40
 
-elif [ "$1" == "logs" ]; then
+elif
+  [ "$1" == "logs" ]
+then
 
-  shift 1
-
-  journalctl -u $serviceName --no-tail $@
+  journalctl -u $SERVICE_NAME -o short --no-hostname --no-tail -e
 
 else
 
-  systemctl "$1" $serviceName
+  systemctl "$1" $SERVICE_NAME
 
 fi

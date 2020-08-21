@@ -11,7 +11,7 @@ class UpgradeToSupergroup : TdHandler() {
 
     override fun onLoad() {
 
-        initFunction("_upgrade")
+        initFunction("upgrade")
 
     }
 
@@ -21,7 +21,7 @@ class UpgradeToSupergroup : TdHandler() {
 
         if (!message.fromBasicGroup) {
 
-            sudo make LocaleController.FN_BASIC_GROUP_ONLY to chatId at message.id edit deleteDelay()
+            sudo make LocaleController.FN_BASIC_GROUP_ONLY onSuccess deleteDelay(message) replyTo message
 
             return
 
@@ -29,9 +29,13 @@ class UpgradeToSupergroup : TdHandler() {
 
         sudo delete message
 
-        upgradeBasicGroupChatToSupergroupChatWith(chatId) onError {
+        upgradeBasicGroupChatToSupergroupChatWith(chatId) {
 
-            sudo make it editTo message
+            onFailure {
+
+                sudo make it editTo message
+
+            }
 
         }
 

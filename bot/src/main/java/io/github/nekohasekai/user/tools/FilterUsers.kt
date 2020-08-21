@@ -1,8 +1,5 @@
 package io.github.nekohasekai.user.tools
 
-import com.pengrad.telegrambot.request.KickChatMember
-import com.pengrad.telegrambot.request.UnbanChatMember
-import io.github.nekohasekai.nekolib.cli.TdCli
 import io.github.nekohasekai.nekolib.core.client.TdClient
 import io.github.nekohasekai.nekolib.core.client.TdException
 import io.github.nekohasekai.nekolib.core.client.TdHandler
@@ -21,7 +18,7 @@ class FilterUsers : TdHandler() {
 
     override fun onLoad() {
 
-        initFunction("_filter_users")
+        initFunction("filter_users")
 
     }
 
@@ -68,7 +65,7 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient, chatId: Long, message: TdA
 
         } else {
 
-            sudo make LocaleController.UNKNOWN_PARAMETER.input(it) replyTo message send deleteDelay(message)
+            sudo make LocaleController.UNKNOWN_PARAMETER.input(it) onSuccess deleteDelay(message) replyTo message
 
             return
 
@@ -192,18 +189,7 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient, chatId: Long, message: TdA
 
             try {
 
-                val botToken = (sudo as TdCli).botToken
-
-                if (botToken.isNotBlank()) {
-
-                    httpSync(botToken, KickChatMember(chatId, it))
-                    httpSync(botToken, UnbanChatMember(chatId, it))
-
-                } else {
-
-                    setChatMemberStatus(chatId, it, TdApi.ChatMemberStatusLeft())
-
-                }
+                setChatMemberStatus(chatId, it, TdApi.ChatMemberStatusLeft())
 
                 break
 
@@ -235,13 +221,13 @@ suspend fun TdHandler.doFilterUsers(anchor: TdClient, chatId: Long, message: TdA
 
     pool.executeTimed {
 
-        sudo make "Finish, ${toDelete.size} deleted." at status edit withDelay {
+        sudo make "Finish, ${toDelete.size} deleted." onSuccess withDelay {
 
             if (anchor == sudo && !hide) delete(it)
 
             pool.shutdown()
 
-        }
+        } editTo status
 
 
     }
